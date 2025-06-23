@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Top Filmes - Gráfico de Pizza, Barras e Linhas</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="styles/home_tema.css">
+  <script src="JS/script_tema.js"></script>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Acme&family=Outfit:wght@100..900&family=Protest+Strike&display=swap");
+
+    body {
+      font-family: "Acme", sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+
+    #chart-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 30px auto;
+      flex-wrap: wrap;
+    }
+
+    /* Estilização dos gráficos */
+    #chart,
+    #bar-chart,
+    #line-chart {
+      background: #ffffff88;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 10px;
+      width: 500px;
+      height: 500px;
+    }
+
+    #bar-chart,
+    #line-chart {
+      display: none; /* Inicialmente ocultos */
+    }
+
+    #legend {
+      font-family: Arial, sans-serif;
+      margin-left: 20px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    #legend div {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    #legend div span {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      border-radius: 50%;
+    }
+
+    #tooltip {
+      font-family: Arial, sans-serif;
+      position: absolute;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    .back-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 50px;
+      border: 2px solid #fff;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .back-button:hover {
+      background: #007bff;
+      color: #fff;
+      transform: scale(1.05);
+      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .back-button i {
+      font-size: 18px;
+    }
+
+    .switch-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 50px;
+      border: 2px solid #fff;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .switch-button:hover {
+      background: #007bff;
+      color: #fff;
+      transform: scale(1.05);
+      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .switch-button i {
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  <button class="back-button" onclick="goBack()">
+    <i class="material-icons">arrow_back</i>
+  </button>
+  <button class="switch-button" onclick="switchChart()">
+    <i class="material-icons">swap_horiz</i>
+  </button>
+  <br><br>
+  <h1 class="title">Top 10 Filmes com Melhores Avaliações</h1>
+  <br /><br />
+  <div id="chart-container">
+    <div id="chart"></div>
+    <div id="bar-chart"></div>
+    <div id="line-chart"></div>
+    <div id="legend"></div>
+  </div>
+  <div id="tooltip"></div>
+
+  <script>
+    function goBack() {
+      window.history.back(); // Navega de volta na história do navegador
+    }
+
+    let currentChart = 0; // 0 = Pizza, 1 = Barras, 2 = Linhas
+
+    function switchChart() {
+      const pieChart = document.getElementById("chart");
+      const barChart = document.getElementById("bar-chart");
+      const lineChart = document.getElementById("line-chart");
+
+      if (currentChart === 0) {
+        pieChart.style.display = "none";
+        barChart.style.display = "block";
+        lineChart.style.display = "none";
+        currentChart = 1;
+      } else if (currentChart === 1) {
+        pieChart.style.display = "none";
+        barChart.style.display = "none";
+        lineChart.style.display = "block";
+        currentChart = 2;
+      } else {
+        pieChart.style.display = "block";
+        barChart.style.display = "none";
+        lineChart.style.display = "none";
+        currentChart = 0;
+      }
+    }
+
+    // Tamanho e margens do gráfico
+    const width = 500,
+      height = 500,
+      margin = 40;
+    const radius = Math.min(width, height) / 2 - margin;
+
+    // Cria o SVG para o gráfico de pizza
+    const svg = d3
+      .select("#chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .append("g")
+      .attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+    // Cria o SVG para o gráfico de barras
+    const barSvg = d3
+      .select("#bar-chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .append("g")
+      .attr("transform", `translate(${margin}, ${margin})`);
+
+    // Cria o SVG para o gráfico de linhas
+    const lineSvg = d3
+      .select("#line-chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .append("g")
+      .attr("transform", `translate(${margin}, ${margin})`);
+
+    // Tooltip para exibir informações detalhadas
+    const tooltip = d3.select("#tooltip");
+
+    // Funções de cores baseadas em uma escala única
+    const color = d3.scaleOrdinal(d3.schemeTableau10);
+
+    // Busca os dados do servidor
+    fetch("top_avaliacoes.php")
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data || data.length === 0) {
+          console.error("Nenhum dado encontrado.");
+          return;
+        }
+
+        // Prepara os dados para o gráfico de pizza
+        const pieData = d3.pie().value((d) => d.media_nota)(data);
+
+        // Define o gerador de arcos
+        const arc = d3.arc().innerRadius(0).outerRadius(radius);
+
+        // Define o gerador de arcos para o efeito de hover
+        const arcHover = d3
+          .arc()
+          .innerRadius(0)
+          .outerRadius(radius + 10);
+
+        // Cria os arcos
+        svg
+          .selectAll("path")
+          .data(pieData)
+          .join("path")
+          .attr("d", arc)
+          .attr("fill", (d) => color(d.data.titulo))
+          .attr("stroke", "black")
+          .style("stroke-width", "4px")
+          .on("mouseover", function (event, d) {
+            d3.select(this).transition().duration(200).attr("d", arcHover);
+            tooltip
+              .style("visibility", "visible")
+              .html(
+                `<strong>${d.data.titulo
+                }</strong><br>Avaliação Média: ${parseFloat(
+                  d.data.media_nota
+                ).toFixed(2)}`
+              );
+          })
+          .on("mousemove", function (event) {
+            tooltip
+              .style("top", `${event.pageY - 40}px`)
+              .style("left", `${event.pageX + 10}px`);
+          })
+          .on("mouseout", function () {
+            d3.select(this).transition().duration(200).attr("d", arc);
+            tooltip.style("visibility", "hidden");
+          });
+
+        // Cria a legenda no elemento #legend
+        const legend = d3.select("#legend");
+        data.forEach((d, i) => {
+          legend
+            .append("div")
+            .html(
+              `<span style="background-color:${color(d.titulo)}"></span>${d.titulo
+              } (${parseFloat(d.media_nota).toFixed(2)})`
+            );
+        });
+
+        // Prepara os dados para o gráfico de barras
+        const barHeight = height - 2 * margin;
+        const barWidth = width - 2 * margin;
+
+        const x = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.media_nota)])
+          .range([0, barWidth]);
+
+        const y = d3.scaleBand()
+          .domain(data.map(d => d.titulo))
+          .range([0, barHeight])
+          .padding(0.1);
+
+        // Cria as barras
+        barSvg.selectAll("rect")
+          .data(data)
+          .join("rect")
+          .attr("x", 0)
+          .attr("y", d => y(d.titulo))
+          .attr("width", d => x(d.media_nota))
+          .attr("height", y.bandwidth())
+          .attr("fill", d => color(d.titulo))
+          .on("mouseover", function (event, d) {
+            tooltip
+              .style("visibility", "visible")
+              .html(
+                `<strong>${d.titulo
+                }</strong><br>Avaliação Média: ${parseFloat(
+                  d.media_nota
+                ).toFixed(2)}`
+              );
+          })
+          .on("mousemove", function (event) {
+            tooltip
+              .style("top", `${event.pageY - 40}px`)
+              .style("left", `${event.pageX + 10}px`);
+          })
+          .on("mouseout", function () {
+            tooltip.style("visibility", "hidden");
+          });
+
+        // Adiciona os eixos
+        barSvg.append("g")
+          .attr("transform", `translate(0, ${barHeight})`)
+          .call(d3.axisBottom(x));
+
+        barSvg.append("g")
+          .call(d3.axisLeft(y));
+
+        // Prepara os dados para o gráfico de linhas
+        const lineHeight = height - 2 * margin;
+        const lineWidth = width - 2 * margin;
+
+        const xLine = d3.scalePoint()
+          .domain(data.map(d => d.titulo))
+          .range([0, lineWidth])
+          .padding(0.5);
+
+        const yLine = d3.scaleLinear()
+          .domain([0, d3.max(data, d => d.media_nota)])
+          .range([lineHeight, 0]);
+
+        // Cria a linha
+        const line = d3.line()
+          .x(d => xLine(d.titulo))
+          .y(d => yLine(d.media_nota));
+
+        lineSvg.append("path")
+          .datum(data)
+          .attr("fill", "none")
+          .attr("stroke", "steelblue")
+          .attr("stroke-width", 2)
+          .attr("d", line);
+
+        // Adiciona os pontos
+        lineSvg.selectAll("circle")
+          .data(data)
+          .join("circle")
+          .attr("cx", d => xLine(d.titulo))
+          .attr("cy", d => yLine(d.media_nota))
+          .attr("r", 5)
+          .attr("fill", d => color(d.titulo))
+          .on("mouseover", function (event, d) {
+            tooltip
+              .style("visibility", "visible")
+              .html(
+                `<strong>${d.titulo
+                }</strong><br>Avaliação Média: ${parseFloat(
+                  d.media_nota
+                ).toFixed(2)}`
+              );
+          })
+          .on("mousemove", function (event) {
+            tooltip
+              .style("top", `${event.pageY - 40}px`)
+              .style("left", `${event.pageX + 10}px`);
+          })
+          .on("mouseout", function () {
+            tooltip.style("visibility", "hidden");
+          });
+
+        // Adiciona os eixos
+        lineSvg.append("g")
+          .attr("transform", `translate(0, ${lineHeight})`)
+          .call(d3.axisBottom(xLine));
+
+        lineSvg.append("g")
+          .call(d3.axisLeft(yLine));
+      })
+      .catch((error) => console.error("Erro ao buscar dados:", error));
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Shooter</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        class Player {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 60;
+                this.width = 40;
+                this.height = 40;
+                this.speed = 5;
+                this.bullets = [];
+            }
+            draw() {
+                ctx.fillStyle = "white";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+            move(dir) {
+                if (dir === "left" && this.x > 0) this.x -= this.speed;
+                if (dir === "right" && this.x < canvas.width - this.width) this.x += this.speed;
+            }
+            shoot() {
+                this.bullets.push({ x: this.x + this.width / 2 - 5, y: this.y, width: 5, height: 10 });
+            }
+        }
+        
+        class Enemy {
+            constructor() {
+                this.x = Math.random() * (canvas.width - 40);
+                this.y = 0;
+                this.width = 40;
+                this.height = 40;
+                this.speed = 2;
+            }
+            draw() {
+                ctx.fillStyle = "red";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+            move() {
+                this.y += this.speed;
+            }
+        }
+        
+        const player = new Player();
+        const enemies = [];
+        let keys = {};
+        
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            player.draw();
+            
+            if (keys["ArrowLeft"]) player.move("left");
+            if (keys["ArrowRight"]) player.move("right");
+            
+            player.bullets.forEach((bullet, index) => {
+                bullet.y -= 5;
+                ctx.fillStyle = "yellow";
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                if (bullet.y < 0) player.bullets.splice(index, 1);
+            });
+            
+            enemies.forEach((enemy, eIndex) => {
+                enemy.move();
+                enemy.draw();
+                player.bullets.forEach((bullet, bIndex) => {
+                    if (
+                        bullet.x < enemy.x + enemy.width &&
+                        bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height &&
+                        bullet.y + bullet.height > enemy.y
+                    ) {
+                        enemies.splice(eIndex, 1);
+                        player.bullets.splice(bIndex, 1);
+                    }
+                });
+            });
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        setInterval(() => { enemies.push(new Enemy()); }, 2000);
+        
+        window.addEventListener("keydown", (e) => {
+            keys[e.key] = true;
+            if (e.key === " ") player.shoot();
+        });
+        window.addEventListener("keyup", (e) => { delete keys[e.key]; });
+        
+        gameLoop();
+    </script>
+</body>
+</html>

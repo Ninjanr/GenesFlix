@@ -1,0 +1,71 @@
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Jogos Futurísticos
+  </title>
+  <link href="https://fonts.googleapis.com/css2?family=Acme&amp;family=Outfit:wght@100..900&amp;display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+ </head>
+ <body class="bg-gradient-to-br from-gray-900 to-gray-800 text-white font-acme">
+  <header class="bg-gray-900 p-6 text-center shadow-lg">
+   <h1 class="text-4xl text-green-400">
+    Fliperama
+   </h1>
+   <nav>
+    <ul class="flex justify-center gap-6 mt-4">
+     <li>
+      <a class="text-xl hover:text-green-400" href="../Home.php">
+       Início
+      </a>
+     </li>
+    </ul>
+   </nav>
+  </header>
+  <section class="text-center py-12">
+   <h2 class="text-3xl text-green-400 mb-8">
+    Jogos:
+   </h2>
+   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+    <div class="bg-gray-900 p-4 rounded-lg shadow-lg cursor-pointer" onclick="window.location.href='quiz-filmes.html';">
+     <img alt="Placeholder image for Quiz de Filmes game, showing a quiz icon with a film reel" class="w-36 h-36 mx-auto mb-4 rounded-lg" height="150" src="https://storage.googleapis.com/a1aa/image/fuxZag1OMg1uFShImMwVfkXFxBbA8LWNjdJIe52zyNcwtB1nA.jpg" width="150"/>
+     <h3 class="text-xl text-green-400 mb-2">
+      Quiz de Filmes
+     </h3>
+     <p>
+      Teste seus conhecimentos sobre o mundo dos filmes.
+     </p>
+    </div>
+    <div class="bg-gray-900 p-4 rounded-lg shadow-lg cursor-pointer" onclick="window.location.href='memoria-filmes.html';">
+     <img alt="Placeholder image for Jogo da Memória game, showing a memory card icon with film characters" class="w-36 h-36 mx-auto mb-4 rounded-lg" height="150" src="https://storage.googleapis.com/a1aa/image/RaXcTm5MxNrDHFsihkG8Af4TVtD1PZCnuhNdOnkq1fB32g6TA.jpg" width="150"/>
+     <h3 class="text-xl text-green-400 mb-2">
+      Jogo da Memória
+     </h3>
+     <p>
+      Desafie sua memória com personagens de filmes.
+     </p>
+    </div>
+   </div>
+  </section>
+  <footer class="bg-gray-900 text-center p-6 mt-12">
+   <p>
+    © 2024 Jogos Futurísticos. Todos os direitos reservados.
+   </p>
+  </footer>
+  <script>
+   document.addEventListener("DOMContentLoaded", function() {
+            const games = document.querySelectorAll('.game');
+
+            games.forEach(game => {
+                game.addEventListener('click', () => {
+                    const link = game.querySelector('img').getAttribute('alt') === "Quiz de Filmes" ? 'quiz-filmes.html' : 'memoria-filmes.html';
+                    window.location.href = link;
+                });
+            });
+        });
+  </script>
+ </body>
+</html>
